@@ -138,6 +138,31 @@ class RiskLevel(str, enum.Enum):
     CRITICAL = "CRITICAL"
 
 
+class ActionStatus(str, enum.Enum):
+    """Lifecycle of an agent-proposed action.
+
+    Nothing moves from PROPOSED to EXECUTED without passing through a human
+    approval — see ARCHITECTURE.md §4.
+    """
+
+    PROPOSED = "PROPOSED"
+    VALIDATED = "VALIDATED"
+    REJECTED = "REJECTED"
+    EXECUTED = "EXECUTED"
+    FAILED = "FAILED"
+
+
+class ActionKind(str, enum.Enum):
+    REROUTE_SHIPMENT = "REROUTE_SHIPMENT"
+    REASSIGN_DOCK = "REASSIGN_DOCK"
+    EXPEDITE_SHIPMENT = "EXPEDITE_SHIPMENT"
+    RAISE_REPLENISHMENT = "RAISE_REPLENISHMENT"
+    SPLIT_ORDER = "SPLIT_ORDER"
+    CONTACT_SUPPLIER = "CONTACT_SUPPLIER"
+    SCHEDULE_MAINTENANCE = "SCHEDULE_MAINTENANCE"
+    RECHARGE_FORKLIFT = "RECHARGE_FORKLIFT"
+
+
 # ---------------------------------------------------------------------------
 # Models
 # ---------------------------------------------------------------------------
@@ -383,6 +408,36 @@ class OperationalEvent(Base):
     severity: Mapped[str] = mapped_column(Enum(ExceptionSeverity), default=ExceptionSeverity.LOW)
     timestamp: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     metadata_json: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+
+
+class AgentAction(Base):
+    """An action an agent proposed, awaiting (or past) human approval."""
+
+    __tablename__ = "agent_actions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    kind: Mapped[str] = mapped_column(Enum(ActionKind), nullable=False)
+    status: Mapped[str] = mapped_column(Enum(ActionStatus), default=ActionStatus.PROPOSED)
+
+    proposed_by: Mapped[str] = mapped_column(String(50), nullable=False)  # agent name
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    rationale: Mapped[str] = mapped_column(Text, nullable=False)
+
+    # What this action operates on
+    entity_type: Mapped[str] = mapped_column(String(50), nullable=False)
+    entity_code: Mapped[str] = mapped_column(String(50), nullable=False)
+    exception_code: Mapped[Optional[str]] = mapped_column(String(30), nullable=True)
+
+    # Projected effect, used by the UI to show the trade-off before approving
+    projected_impact: Mapped[float] = mapped_column(Float, default=0.0)
+    projected_savings: Mapped[float] = mapped_column(Float, default=0.0)
+    confidence: Mapped[float] = mapped_column(Float, default=0.0)  # 0..1
+
+    validation_notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    result_message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    decided_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
 
 
 class Exception_(Base):

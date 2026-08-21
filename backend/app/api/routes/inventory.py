@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session, joinedload
 
 from app.core.database import get_db
-from app.models.models import InventoryItem, Pallet
+from app.models.models import InventoryItem, Pallet, StockStatus
 from app.schemas.schemas import InventoryItemOut, PalletOut
 
 router = APIRouter(tags=["inventory"])
@@ -22,10 +22,12 @@ def list_pallets(db: Session = Depends(get_db)):
 
 @router.get("/inventory", response_model=list[InventoryItemOut])
 def list_inventory(
-    stock_status: str | None = None,
+    # Typed as the enum so an unknown value returns 422 instead of silently
+    # matching nothing and looking like "no items at risk".
+    stock_status: StockStatus | None = None,
     db: Session = Depends(get_db),
 ):
     q = db.query(InventoryItem)
-    if stock_status:
+    if stock_status is not None:
         q = q.filter(InventoryItem.stock_status == stock_status)
     return q.order_by(InventoryItem.sku).all()

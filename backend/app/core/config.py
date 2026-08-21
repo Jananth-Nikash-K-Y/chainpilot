@@ -6,7 +6,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     app_env: str = "development"
-    database_url: str = "postgresql://chainpilot:chainpilot@localhost:5432/chainpilot"
+    # SQLite by default — zero setup, single file, no server to run.
+    # Swap to a postgresql:// URL later without touching application code.
+    database_url: str = "sqlite:///./chainpilot.db"
 
     llm_provider: str = ""
     llm_api_key: str = ""

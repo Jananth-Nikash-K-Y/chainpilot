@@ -1,7 +1,10 @@
-/* ── UI Store — selected object, camera, panels, command bar ── */
+/* ── UI Store — selection, camera, panels, agent console ── */
 import { create } from 'zustand';
 import type { AIQueryResponse, CameraView, SelectedObject } from '@/types/types';
 import { api } from '@/services/api';
+import { useDataStore } from '@/stores/dataStore';
+
+type Panel = 'agent' | 'tower' | 'detail';
 
 interface UIState {
   // Selection
@@ -19,24 +22,31 @@ interface UIState {
   activePage: string;
   setActivePage: (page: string) => void;
 
-  // Command bar
-  commandBarOpen: boolean;
+  // Mobile: which sheet is on top
+  activePanel: Panel;
+  setActivePanel: (p: Panel) => void;
+
+  // Command bar + agent run
   commandBarQuery: string;
-  commandBarResponse: AIQueryResponse | null;
   commandBarLoading: boolean;
-  setCommandBarOpen: (open: boolean) => void;
+  agentRun: AIQueryResponse | null;
+  decidingActionId: number | null;
+  actionError: string | null;
   setCommandBarQuery: (q: string) => void;
   submitQuery: (q: string) => Promise<void>;
+  closeAgentRun: () => void;
+  decideAction: (id: number, decision: 'approve' | 'reject') => Promise<void>;
 
   // Loading
   dataLoaded: boolean;
   setDataLoaded: (v: boolean) => void;
 }
 
-export const useUIStore = create<UIState>((set) => ({
+export const useUIStore = create<UIState>((set, get) => ({
   selectedObject: null,
   hoveredObject: null,
-  setSelected: (obj) => set({ selectedObject: obj }),
+  setSelected: (obj) =>
+    set(obj ? { selectedObject: obj, activePanel: 'detail' } : { selectedObject: obj }),
   setHovered: (obj) => set({ hoveredObject: obj }),
 
   cameraView: 'overview',
@@ -46,22 +56,70 @@ export const useUIStore = create<UIState>((set) => ({
   activePage: 'digital-twin',
   setActivePage: (page) => set({ activePage: page }),
 
-  commandBarOpen: false,
+  activePanel: 'tower',
+  setActivePanel: (p) => set({ activePanel: p }),
+
   commandBarQuery: '',
-  commandBarResponse: null,
   commandBarLoading: false,
-  setCommandBarOpen: (open) => set({ commandBarOpen: open }),
+  agentRun: null,
+  decidingActionId: null,
+
   setCommandBarQuery: (q) => set({ commandBarQuery: q }),
+
   submitQuery: async (q) => {
-    set({ commandBarLoading: true });
+    set({ commandBarLoading: true, commandBarQuery: q, activePanel: 'agent' });
     try {
       const res = await api.aiQuery(q);
-      set({ commandBarResponse: res, commandBarLoading: false });
-    } catch {
+      set({ agentRun: res, commandBarLoading: false });
+    } catch (e) {
       set({
-        commandBarResponse: { query: q, response: 'Failed to reach ChainPilot AI.', suggestions: [] },
+        agentRun: {
+          query: q,
+          response:
+            `Could not reach the agent service (${(e as Error).message}). ` +
+            'Check that the backend is running on port 8000.',
+          suggestions: [],
+          agents: [],
+          actions: [],
+        },
         commandBarLoading: false,
       });
+    }
+  },
+
+  closeAgentRun: () => set({ agentRun: null, activePanel: 'tower' }),
+
+  actionError: null,
+
+  decideAction: async (id, decision) => {
+    set({ decidingActionId: id, actionError: null });
+    try {
+      const res =
+        decision === 'approve' ? await api.approveAction(id) : await api.rejectAction(id);
+
+      // Reflect the decision in the open run without refetching everything.
+      const run = get().agentRun;
+      if (run && res.action) {
+        set({
+          agentRun: {
+            ...run,
+            actions: run.actions.map((a) => (a.id === id ? res.action! : a)),
+          },
+        });
+      }
+
+      // An executed action mutates operational state — pull the twin back
+      // in sync so the change is visible immediately.
+      if (decision === 'approve' && res.ok) {
+        await useDataStore.getState().fetchAll();
+      }
+      if (!res.ok) set({ actionError: res.message });
+    } catch (e) {
+      // Surface the failure — silently swallowing it leaves the operator
+      // thinking an action was applied when it was not.
+      set({ actionError: (e as Error).message });
+    } finally {
+      set({ decidingActionId: null });
     }
   },
 

@@ -13,5 +13,14 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    // Proxy API calls to the backend so the browser stays same-origin.
+    // Avoids CORS entirely and sidesteps localhost resolving to ::1 while
+    // uvicorn listens on 127.0.0.1.
+    proxy: {
+      "/api": {
+        target: "http://127.0.0.1:8000",
+        changeOrigin: true,
+      },
+    },
   },
 });

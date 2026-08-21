@@ -208,10 +208,70 @@ export interface HealthSummary {
   active_forklifts: number;
 }
 
+// ── Agent layer ──
+
+export interface ToolCall {
+  tool: string;
+  args: Record<string, unknown>;
+  result_summary: string;
+}
+
+export interface Finding {
+  headline: string;
+  detail: string;
+  severity: ExceptionSeverity;
+  entity_type: string;
+  entity_code: string;
+  metrics: Record<string, unknown>;
+}
+
+export interface AgentTrace {
+  agent: string;
+  relevance: number;
+  summary: string;
+  findings: Finding[];
+  tool_calls: ToolCall[];
+}
+
+export type ActionStatus =
+  | 'PROPOSED' | 'VALIDATED' | 'REJECTED' | 'EXECUTED' | 'FAILED';
+
+export interface AgentActionItem {
+  id: number;
+  kind: string;
+  status: ActionStatus;
+  proposed_by: string;
+  title: string;
+  rationale: string;
+  entity_type: string;
+  entity_code: string;
+  exception_code?: string;
+  projected_impact: number;
+  projected_savings: number;
+  confidence: number;
+  validation_notes?: string;
+  result_message?: string;
+  created_at: string;
+  decided_at?: string;
+}
+
 export interface AIQueryResponse {
   query: string;
   response: string;
   suggestions: string[];
+  agents: AgentTrace[];
+  actions: AgentActionItem[];
+}
+
+export interface ActionDecisionResponse {
+  ok: boolean;
+  message: string;
+  action?: AgentActionItem;
+}
+
+export interface AgentInfo {
+  name: string;
+  domain: string;
 }
 
 // ── Enums ──

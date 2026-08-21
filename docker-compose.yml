@@ -1,29 +1,10 @@
-version: "3.9"
-
 # ChainPilot — foundation-phase compose file.
-# Only frontend, backend, and PostgreSQL are wired up for now.
-# MCP server, A2A server, and event streaming will be added as
-# separate services in a later phase.
+#
+# The backend uses SQLite (a single file inside the backend container volume),
+# so there is no database service to run. Add a `postgres` service here and
+# point DATABASE_URL at it if/when the project outgrows SQLite.
 
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: chainpilot-postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: chainpilot
-      POSTGRES_PASSWORD: chainpilot
-      POSTGRES_DB: chainpilot
-    ports:
-      - "5432:5432"
-    volumes:
-      - chainpilot_postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U chainpilot"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
   backend:
     build:
       context: ./backend
@@ -33,12 +14,9 @@ services:
     env_file:
       - .env
     environment:
-      DATABASE_URL: postgresql://chainpilot:chainpilot@postgres:5432/chainpilot
+      DATABASE_URL: sqlite:///./chainpilot.db
     ports:
       - "8000:8000"
-    depends_on:
-      postgres:
-        condition: service_healthy
     volumes:
       - ./backend:/app
 
@@ -57,6 +35,3 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
-
-volumes:
-  chainpilot_postgres_data:

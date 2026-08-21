@@ -295,7 +295,73 @@ class AIQueryRequest(BaseModel):
     query: str
 
 
+class ToolCallOut(BaseModel):
+    tool: str
+    args: dict = {}
+    result_summary: str = ""
+
+
+class FindingOut(BaseModel):
+    headline: str
+    detail: str
+    severity: str
+    entity_type: str = ""
+    entity_code: str = ""
+    metrics: dict = {}
+
+
+class AgentTraceOut(BaseModel):
+    agent: str
+    relevance: float
+    summary: str
+    findings: list[FindingOut] = []
+    tool_calls: list[ToolCallOut] = []
+
+
+class ActionOut(_ORMBase):
+    id: int
+    kind: str
+    status: str
+    proposed_by: str
+    title: str
+    rationale: str
+    entity_type: str
+    entity_code: str
+    exception_code: Optional[str] = None
+    projected_impact: float
+    projected_savings: float
+    confidence: float
+    validation_notes: Optional[str] = None
+    result_message: Optional[str] = None
+    created_at: datetime
+    decided_at: Optional[datetime] = None
+
+
 class AIQueryResponse(BaseModel):
     query: str
     response: str
     suggestions: list[str] = []
+    agents: list[AgentTraceOut] = []
+    actions: list[ActionOut] = []
+
+
+class ActionDecisionResponse(BaseModel):
+    ok: bool
+    message: str
+    action: Optional[ActionOut] = None
+
+
+class SimulateRequest(BaseModel):
+    shipment_code: str
+    extra_hours: float = 4.0
+
+
+class ToolInfo(BaseModel):
+    name: str
+    description: str
+    writes: bool
+
+
+class AgentInfo(BaseModel):
+    name: str
+    domain: str

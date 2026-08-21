@@ -1,6 +1,9 @@
 /* ── ChainPilot API client ── */
 
-const BASE = 'http://localhost:8000/api';
+// Relative — Vite proxies /api to the backend in dev (see vite.config.ts),
+// and in production the API is served from the same origin.
+// Override with VITE_API_BASE if the backend lives elsewhere.
+const BASE = import.meta.env.VITE_API_BASE ?? '/api';
 
 async function get<T>(path: string): Promise<T> {
   const res = await fetch(`${BASE}${path}`);
@@ -19,6 +22,9 @@ async function post<T>(path: string, body: unknown): Promise<T> {
 }
 
 import type {
+  ActionDecisionResponse,
+  AgentActionItem,
+  AgentInfo,
   AIQueryResponse,
   Aisle,
   Bay,
@@ -51,5 +57,16 @@ export const api = {
   events: () => get<OperationalEvent[]>('/events'),
   exceptions: () => get<OperationalException[]>('/exceptions?resolved=false'),
   health: () => get<HealthSummary>('/health'),
+
+  // ── Agent layer ──
   aiQuery: (query: string) => post<AIQueryResponse>('/ai/query', { query }),
+  agents: () => get<AgentInfo[]>('/agents'),
+  actions: (status?: string) =>
+    get<AgentActionItem[]>(status ? `/actions?status=${status}` : '/actions'),
+  approveAction: (id: number) =>
+    post<ActionDecisionResponse>(`/actions/${id}/approve`, {}),
+  rejectAction: (id: number) =>
+    post<ActionDecisionResponse>(`/actions/${id}/reject`, {}),
+  simulate: (shipment_code: string, extra_hours = 4) =>
+    post<Record<string, unknown>>('/simulate', { shipment_code, extra_hours }),
 };
