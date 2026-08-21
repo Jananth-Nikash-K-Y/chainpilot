@@ -52,3 +52,9 @@ build/
 # --- Misc ---
 .cache/
 coverage/
+
+# --- Build info / lint caches ---
+*.tsbuildinfo
+.ruff_cache/
+vite.config.js
+vite.config.d.ts
