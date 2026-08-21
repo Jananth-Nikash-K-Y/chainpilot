@@ -1,0 +1,3 @@
+// Module boundary for "hooks".
+// Intentionally empty — implementation to follow in a later phase.
+export {};

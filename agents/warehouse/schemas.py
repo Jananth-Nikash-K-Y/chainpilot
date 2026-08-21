@@ -1,0 +1,1 @@
+"""Input/output schemas for the warehouse agent. Not implemented yet."""

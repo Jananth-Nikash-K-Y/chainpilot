@@ -1,0 +1,62 @@
+version: "3.9"
+
+# ChainPilot — foundation-phase compose file.
+# Only frontend, backend, and PostgreSQL are wired up for now.
+# MCP server, A2A server, and event streaming will be added as
+# separate services in a later phase.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: chainpilot-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: chainpilot
+      POSTGRES_PASSWORD: chainpilot
+      POSTGRES_DB: chainpilot
+    ports:
+      - "5432:5432"
+    volumes:
+      - chainpilot_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chainpilot"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: chainpilot-backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://chainpilot:chainpilot@postgres:5432/chainpilot
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: chainpilot-frontend
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+volumes:
+  chainpilot_postgres_data:
