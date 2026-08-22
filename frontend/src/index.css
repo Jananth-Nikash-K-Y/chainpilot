@@ -900,14 +900,20 @@ html, body, #root {
   .camera-controls { gap: 3px; }
   .camera-btn { padding: 5px 7px; font-size: 9px; letter-spacing: 0; }
 
-  /* Toggle chips for switching between sheets on a phone */
+}
+
+/* Toggle chips for switching between sheets. Needed wherever panels stack
+   as sheets (<= 900px), not just on phones — otherwise the agent console
+   covers the control tower with no way back to it. */
+@media (max-width: 900px) {
   .panel-toggle {
     display: flex;
     position: absolute;
     top: 8px;
-    left: 6px;
+    left: 8px;
     gap: 4px;
     z-index: 38;
+    flex-wrap: wrap;
   }
 }
 
