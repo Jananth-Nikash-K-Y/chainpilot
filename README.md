@@ -122,9 +122,29 @@ structures they belong to.
        │             │  berth     │  status-lit     racking, 3 levels
 ```
 
+Site zones are laid out as bands along `z` so traffic lanes and standing areas
+never overlap:
+
+| Band | Zone |
+|---|---|
+| `z = -22` | Shoulder — held / delayed vehicles |
+| `z = -14` | Holding lane — queued for a berth |
+| `z = -6 … +6` | **Main road** — inbound north half, outbound south half |
+| `z = +12 … +35` | Parking yard |
+
+Berthed trucks point straight at the wall, so only their ~2.6 width occupies a
+4.5-wide berth.
+
 Clicking any object — truck, dock, bay, forklift, exception marker — opens an
-inspector bound to live backend state. Orbit, pan and zoom are unrestricted;
-the view presets fly you somewhere and then hand control straight back.
+inspector bound to live backend state. Orbit, pan and zoom are unrestricted:
+zoom follows the cursor, the near limit lets the camera sit between two racking
+faces, and **double-clicking an aisle or bay flies you straight into it**. View
+presets fly you somewhere and then hand control straight back.
+
+![Camera positioned inside an aisle, between two racking faces with a forklift working the lane](docs/images/aisle-view.png)
+
+*Navigated down to pick-face level: pallet loads coloured by stock status,
+green healthy through red critical, with a forklift working the lane.*
 
 ![Warehouse interior in dark theme, racking colour-coded by stock status](docs/images/warehouse-dark.png)
 
