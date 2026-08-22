@@ -76,7 +76,7 @@ flowchart TB
 |---|---|
 | Routes contain no business logic | Keeps HTTP concerns swappable |
 | Only repositories issue SQL | One place to reason about queries |
-| Agents never touch the database | All access is через named, auditable tools |
+| Agents never touch the database | All access goes through named, auditable tools |
 | Every tool call is recorded | The trace is the evidence behind an answer |
 | Write tools are flagged `writes: true` | Read/write separation is explicit |
 
