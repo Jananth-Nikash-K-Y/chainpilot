@@ -105,14 +105,23 @@ CUSTOMER_NAMES = [
 # These mirror SITE in frontend/src/constants/index.ts. The two must agree or
 # entities render outside the structures they belong to.
 GATE_X = -40            # site entrance
-APRON_X = 2             # where trucks berth, nose pointing east
+APRON_X = 4             # where trucks berth, nose pointing east
 APRON_Z_START = -20     # dock berth 0
 APRON_SLOT_DEPTH = 4.5
 AISLE_X_START = 14      # first racking run, inside the building
 AISLE_SPACING = 8
 AISLE_Z = -20           # aisles start here; bays extend along +z
 BAY_DEPTH = 4           # spacing between bays along an aisle
-FACING_DOCK = 1.5708    # radians — nose east toward the dock wall
+
+# The truck model runs ~10 units along its local X with the nose at +x, and is
+# only ~2.6 wide. A berthed truck therefore points straight at the wall
+# (rotation 0) so its LENGTH sits perpendicular to the dock face and only its
+# width occupies the berth. Rotating it 90° would lay 10 units of truck across
+# berths spaced 4.5 apart — which is what used to pile them on top of
+# each other.
+FACING_DOCK = 0.0       # nose east, toward the dock wall
+HEADING_WEST = 3.1416   # nose west, for departing traffic
+TRUCK_LEN = 12.0        # length plus clearance, for queue spacing
 
 
 def _seed() -> None:
@@ -314,6 +323,7 @@ def _seed() -> None:
             if d.status in (DockStatus.OCCUPIED, DockStatus.LOADING, DockStatus.UNLOADING)
         ]
         docked_truck_cursor = 0
+        lane_counts = {"arriving": 0, "waiting": 0, "delayed": 0, "departing": 0}
 
         trucks = []
         for i in range(10):
@@ -333,23 +343,32 @@ def _seed() -> None:
                     # rather than inventing an inconsistent assignment.
                     status = TruckStatus.WAITING
 
-            # Position based on status. Trucks at a dock line up with the
-            # dock they are actually assigned to, so the 3D scene matches.
-            if status == TruckStatus.ARRIVING:
-                px, py, pz = GATE_X + 4 + i * 7, 0, 0
-                ry = 0.0
-            elif status == TruckStatus.WAITING:
-                px, py, pz = -12, 0, -14 + i * 5
-                ry = FACING_DOCK
-            elif dock_slot is not None:
+            # Position by status. Each status owns a lane, and vehicles are
+            # spaced by TRUCK_LEN along that lane so nothing overlaps.
+            if dock_slot is not None:
+                # Nose up to the wall; length runs perpendicular to the face.
                 px, py, pz = APRON_X, 0, APRON_Z_START + dock_slot * APRON_SLOT_DEPTH
                 ry = FACING_DOCK
-            elif status == TruckStatus.DELAYED:
-                px, py, pz = -30, 0, 12
-                ry = 0.0
-            else:
-                px, py, pz = APRON_X - 8, 0, APRON_Z_START + i * APRON_SLOT_DEPTH
+            elif status == TruckStatus.ARRIVING:
+                # Nose-to-tail on the approach road (z = 0 lane).
+                px, py, pz = GATE_X + 6 + lane_counts["arriving"] * TRUCK_LEN, 0, 0
                 ry = FACING_DOCK
+                lane_counts["arriving"] += 1
+            elif status == TruckStatus.WAITING:
+                # Holding lane south of the road, clear of the apron.
+                px, py, pz = -34 + lane_counts["waiting"] * TRUCK_LEN, 0, 22
+                ry = FACING_DOCK
+                lane_counts["waiting"] += 1
+            elif status == TruckStatus.DELAYED:
+                # Held on the shoulder north of the road.
+                px, py, pz = -34 + lane_counts["delayed"] * TRUCK_LEN, 0, -22
+                ry = FACING_DOCK
+                lane_counts["delayed"] += 1
+            else:
+                # Departing: staged on the exit lane, already turned around.
+                px, py, pz = -6 - lane_counts["departing"] * TRUCK_LEN, 0, 10
+                ry = HEADING_WEST
+                lane_counts["departing"] += 1
 
             t = Truck(
                 code=f"TR-{1020 + i}",

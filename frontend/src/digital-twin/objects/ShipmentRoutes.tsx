@@ -5,7 +5,9 @@ import * as THREE from 'three';
 import { useDataStore } from '@/stores/dataStore';
 import { COLORS, SITE, severityColor } from '@/constants';
 
-const ARRIVAL = new THREE.Vector3(SITE.apron.x - 6, 0.5, 0);
+// Routes converge above the apron rather than on it — at ground level they
+// sliced straight through the yard and read as clutter.
+const ARRIVAL = new THREE.Vector3(SITE.apron.x - 6, 17, 0);
 
 /** Fans routes out around the approach so they do not overlap. */
 function endpointFor(index: number, total: number, inbound: boolean): THREE.Vector3 {
@@ -15,7 +17,7 @@ function endpointFor(index: number, total: number, inbound: boolean): THREE.Vect
   const dir = inbound ? -1 : 1;
   return new THREE.Vector3(
     ARRIVAL.x + dir * radius * Math.cos(angle),
-    0.5,
+    6,
     ARRIVAL.z + radius * Math.sin(angle) * (inbound ? 1 : -1),
   );
 }
@@ -23,11 +25,12 @@ function endpointFor(index: number, total: number, inbound: boolean): THREE.Vect
 export function ShipmentRoutes() {
   const shipments = useDataStore((s) => s.shipments);
 
-  // Only routes still in play are worth drawing.
+  // Only routes that need attention are drawn. Rendering every in-transit
+  // shipment filled the yard with lines nobody was acting on.
   const active = useMemo(
     () =>
       shipments.filter(
-        (s) => s.status === 'IN_TRANSIT' || s.status === 'SCHEDULED' || s.status === 'DELAYED',
+        (s) => s.status === 'DELAYED' || s.risk === 'HIGH' || s.risk === 'CRITICAL',
       ),
     [shipments],
   );
@@ -42,7 +45,7 @@ export function ShipmentRoutes() {
         const mid = new THREE.Vector3()
           .addVectors(ARRIVAL, far)
           .multiplyScalar(0.5)
-          .setY(14 + (i % 4) * 3);
+          .setY(26 + (i % 4) * 4);
 
         const curve = new THREE.QuadraticBezierCurve3(
           isInbound ? far : ARRIVAL,
@@ -68,19 +71,19 @@ export function ShipmentRoutes() {
           key={r.id}
           points={r.points}
           color={r.color}
-          lineWidth={r.delayed ? 1.8 : 1}
+          lineWidth={r.delayed ? 1.6 : 0.9}
           transparent
-          opacity={r.delayed ? 0.85 : 0.35}
+          opacity={r.delayed ? 0.6 : 0.18}
           dashed={!r.delayed}
           dashSize={2}
           gapSize={1.6}
         />
       ))}
 
-      {/* Convergence marker at the site entry */}
-      <mesh position={[ARRIVAL.x, 0.4, ARRIVAL.z]} rotation={[-Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[1.8, 2.2, 32]} />
-        <meshBasicMaterial color={COLORS.cyan} transparent opacity={0.5} />
+      {/* Convergence marker, aloft with the routes */}
+      <mesh position={[ARRIVAL.x, ARRIVAL.y, ARRIVAL.z]} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[1.4, 1.8, 32]} />
+        <meshBasicMaterial color={COLORS.cyan} transparent opacity={0.35} />
       </mesh>
     </group>
   );

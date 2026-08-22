@@ -24,7 +24,7 @@ export const SITE = {
   },
 
   /** Trucks berth here, nose pointing east at the dock wall. */
-  apron: { x: 2, zStart: -20, slotDepth: 4.5, slots: 10 },
+  apron: { x: 4, zStart: -20, slotDepth: 4.5, slots: 10 },
 
   dockWall: { x: 8, zMin: -24, zMax: 24, height: 10 },
 

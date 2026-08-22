@@ -6,6 +6,12 @@ Operate a supply chain through a live 3D digital twin driven by a network of
 specialized AI agents. Agents reason over real operational data, propose
 recovery actions, and — only after a human approves — execute them.
 
+![ChainPilot control tower — live 3D digital twin of the yard, dock face and warehouse racking](docs/images/overview.png)
+
+*The whole site in one view: trucks berthed at status-lit dock doors, the
+waiting yard, and racking coloured by stock health. The collapsed pill in the
+corner surfaces only what needs attention.*
+
 ---
 
 ## What it does
@@ -37,6 +43,25 @@ flowchart LR
 The approval gate is a hard architectural constraint, not a UI affordance:
 `validate_action` and `execute_action` are separate tools from
 `propose_action` precisely so a human can sit between them.
+
+### 1 — Ask, and watch the agents work
+
+![Agent console showing three agents engaged and ten ranked findings](docs/images/agent-console.png)
+
+Ask in plain language. The orchestrator picks the relevant agents, each calls
+tools against live data, and the console shows which agents ran and what they
+found — ranked most severe first. **Show tool trace** reveals the exact tool
+calls behind every claim, so no answer is a black box.
+
+### 2 — Approve or reject what they propose
+
+![Approval queue with projected savings, confidence and validation notes per action](docs/images/approval-queue.png)
+
+Each proposal carries the agent that raised it, projected saving against cost,
+a confidence score, the reasoning, and a fresh validation check run at the
+moment you see it. Approving re-validates and then executes; the operational
+state changes, an event is logged, and the twin updates. Rejecting records the
+decision and runs nothing.
 
 ---
 
@@ -98,7 +123,13 @@ structures they belong to.
 ```
 
 Clicking any object — truck, dock, bay, forklift, exception marker — opens an
-inspector bound to live backend state.
+inspector bound to live backend state. Orbit, pan and zoom are unrestricted;
+the view presets fly you somewhere and then hand control straight back.
+
+![Warehouse interior in dark theme, racking colour-coded by stock status](docs/images/warehouse-dark.png)
+
+*The same scene in dark theme, at the Warehouse preset. Light is the default —
+dark is one click in the top bar, and the choice persists.*
 
 ---
 
