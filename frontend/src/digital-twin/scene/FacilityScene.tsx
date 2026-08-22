@@ -1,11 +1,12 @@
 /* ── FacilityScene — orchestrates all 3D sub-scenes ── */
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { OrbitControls } from '@react-three/drei';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useDataStore } from '@/stores/dataStore';
 import { useUIStore } from '@/stores/uiStore';
+import { useSceneColors } from '@/hooks';
 import { Ground } from '@/digital-twin/objects/Ground';
 import { WarehouseBuilding } from '@/digital-twin/objects/WarehouseBuilding';
 import { DockWall } from '@/digital-twin/objects/DockWall';
@@ -27,6 +28,9 @@ const VIEWS: Record<string, { pos: [number, number, number]; target: [number, nu
   bay: { pos: [18, 10, 16], target: [30, 3, -8] },
 };
 
+/** Distance below which a preset fly-to is considered finished. */
+const ARRIVED = 1.2;
+
 export function FacilityScene() {
   const trucks = useDataStore((s) => s.trucks);
   const aisles = useDataStore((s) => s.aisles);
@@ -34,34 +38,50 @@ export function FacilityScene() {
   const cameraView = useUIStore((s) => s.cameraView);
   const cameraTarget = useUIStore((s) => s.cameraTarget);
   const setSelected = useUIStore((s) => s.setSelected);
+  const colors = useSceneColors();
+
   const controlsRef = useRef<OrbitControlsImpl>(null);
   const { camera } = useThree();
 
-  // Smooth camera transitions
+  // The camera only animates while flying to a preset. Once it arrives — or
+  // the moment the user grabs the controls — animation stops and OrbitControls
+  // owns the camera completely. Previously this lerped every frame, which
+  // fought every drag and made the scene feel locked.
+  const flying = useRef(true);
+
+  useEffect(() => {
+    // A new preset (or a newly selected object) restarts the fly-to.
+    flying.current = true;
+  }, [cameraView, cameraTarget]);
+
   useFrame(() => {
-    const preset = VIEWS[cameraView] || VIEWS.overview;
-    const targetPos = cameraTarget
+    if (!flying.current) return;
+
+    const preset = VIEWS[cameraView] ?? VIEWS.overview;
+    const destPos = cameraTarget
       ? new THREE.Vector3(cameraTarget[0] - 16, cameraTarget[1] + 14, cameraTarget[2] + 18)
       : new THREE.Vector3(...preset.pos);
-    const targetLook = cameraTarget
+    const destLook = cameraTarget
       ? new THREE.Vector3(...cameraTarget)
       : new THREE.Vector3(...preset.target);
 
-    camera.position.lerp(targetPos, 0.045);
-    if (controlsRef.current) {
-      controlsRef.current.target.lerp(targetLook, 0.045);
-      controlsRef.current.update();
+    camera.position.lerp(destPos, 0.07);
+    const controls = controlsRef.current;
+    if (controls) {
+      controls.target.lerp(destLook, 0.07);
+      controls.update();
+      if (camera.position.distanceTo(destPos) < ARRIVED) flying.current = false;
     }
   });
 
   return (
     <>
-      {/* ── Lighting: bright enough to actually read the facility ── */}
-      <ambientLight intensity={0.75} color="#cfd8ea" />
-      <hemisphereLight args={['#dce6ff', '#2a2f3d', 0.85]} />
+      {/* ── Lighting ── */}
+      <ambientLight intensity={colors.ambient} color="#ffffff" />
+      <hemisphereLight args={['#ffffff', colors.floor, colors.hemi]} />
       <directionalLight
         position={[-40, 60, 40]}
-        intensity={1.5}
+        intensity={colors.sun}
         color="#ffffff"
         castShadow
         shadow-mapSize-width={2048}
@@ -70,24 +90,33 @@ export function FacilityScene() {
         shadow-camera-right={90}
         shadow-camera-top={90}
         shadow-camera-bottom={-90}
-        shadow-camera-far={200}
+        shadow-camera-far={220}
       />
-      <directionalLight position={[50, 40, -30]} intensity={0.5} color="#9fb4d8" />
+      <directionalLight position={[50, 40, -30]} intensity={colors.fill * 0.6} color="#c9d6ee" />
+      <pointLight position={[30, 9, 0]} intensity={colors.fill} distance={80} decay={1.6} />
+      <pointLight position={[16, 8, -14]} intensity={colors.fill * 0.7} distance={55} decay={1.6} />
 
-      {/* Interior fill so racking does not fall into shadow */}
-      <pointLight position={[30, 9, 0]} intensity={0.9} color="#dbe7ff" distance={70} decay={1.6} />
-      <pointLight position={[16, 8, -14]} intensity={0.55} color="#cfe0ff" distance={50} decay={1.6} />
-      {/* Cyan rim on the dock face for the control-room feel */}
-      <pointLight position={[4, 7, 0]} intensity={0.7} color="#00d4ff" distance={55} decay={1.8} />
-
+      {/* ── Camera controls: full freedom to orbit, pan and zoom ── */}
       <OrbitControls
         ref={controlsRef}
-        enableDamping
-        dampingFactor={0.08}
-        minDistance={14}
-        maxDistance={170}
-        maxPolarAngle={Math.PI * 0.47}
         makeDefault
+        enableDamping
+        dampingFactor={0.06}
+        enablePan
+        screenSpacePanning={false}
+        panSpeed={0.9}
+        rotateSpeed={0.85}
+        zoomSpeed={1.1}
+        minDistance={4}
+        maxDistance={320}
+        // Just shy of the horizon, so you can drop to near ground level
+        // without flipping under the floor.
+        maxPolarAngle={Math.PI * 0.495}
+        minPolarAngle={0.05}
+        // Any user input cancels the automatic fly-to immediately.
+        onStart={() => {
+          flying.current = false;
+        }}
       />
 
       {/* Clicking empty space clears the selection */}
@@ -96,7 +125,7 @@ export function FacilityScene() {
         rotation={[-Math.PI / 2, 0, 0]}
         onClick={() => setSelected(null)}
       >
-        <planeGeometry args={[400, 400]} />
+        <planeGeometry args={[500, 500]} />
         <meshBasicMaterial transparent opacity={0} depthWrite={false} />
       </mesh>
 

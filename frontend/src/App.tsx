@@ -8,6 +8,7 @@ import { EventTimeline } from '@/components/EventTimeline';
 import { CameraControls } from '@/components/CameraControls';
 import { CommandBar } from '@/components/CommandBar';
 import { AgentConsole } from '@/components/AgentConsole';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const NAV_ITEMS = [
   { id: 'digital-twin', icon: '◈', label: 'Digital Twin' },
@@ -51,6 +52,7 @@ export default function App() {
           ChainPilot
         </div>
         <div className="app-topbar-status">
+          <ThemeToggle />
           <span>SYSTEM</span>
           <div className={`status-dot ${error ? 'error' : statusColor}`} />
           <span>{error ? 'OFFLINE' : loading ? 'SYNCING' : 'ONLINE'}</span>

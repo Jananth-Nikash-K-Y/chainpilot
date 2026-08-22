@@ -1,8 +1,10 @@
 /* ── WarehouseBuilding — open-roof shell so the interior stays readable ── */
 import { useMemo } from 'react';
-import { MATERIAL, SITE } from '@/constants';
+import { SITE } from '@/constants';
+import { useSceneColors } from '@/hooks';
 
 export function WarehouseBuilding() {
+  const c = useSceneColors();
   const { xMin, xMax, zMin, zMax, height } = SITE.warehouse;
 
   const width = xMax - xMin;
@@ -21,19 +23,19 @@ export function WarehouseBuilding() {
       {/* Floor slab — light enough that racking and forklifts read against it */}
       <mesh position={[cx, 0.02, cz]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[width, depth]} />
-        <meshStandardMaterial color={MATERIAL.floor} roughness={0.88} metalness={0.04} />
+        <meshStandardMaterial color={c.floor} roughness={0.88} metalness={0.04} />
       </mesh>
 
       {/* Back and side walls (the dock face is handled by DockWall) */}
       <mesh position={[xMax, height / 2, cz]} castShadow receiveShadow>
         <boxGeometry args={[0.5, height, depth]} />
-        <meshStandardMaterial color={MATERIAL.wall} roughness={0.8} metalness={0.12} />
+        <meshStandardMaterial color={c.wall} roughness={0.8} metalness={0.12} />
       </mesh>
       {[zMin, zMax].map((z) => (
         <mesh key={z} position={[cx, height / 2, z]} castShadow receiveShadow>
           <boxGeometry args={[width, height, 0.5]} />
           <meshStandardMaterial
-            color={MATERIAL.wall}
+            color={c.wall}
             roughness={0.8}
             metalness={0.12}
             transparent
@@ -51,7 +53,7 @@ export function WarehouseBuilding() {
       ].map(([x, z]) => (
         <mesh key={`${x}-${z}`} position={[x, height / 2, z]} castShadow>
           <boxGeometry args={[0.9, height, 0.9]} />
-          <meshStandardMaterial color={MATERIAL.frame} roughness={0.5} metalness={0.5} />
+          <meshStandardMaterial color={c.frame} roughness={0.5} metalness={0.5} />
         </mesh>
       ))}
 
@@ -60,12 +62,12 @@ export function WarehouseBuilding() {
         <group key={z}>
           <mesh position={[cx, height - 0.3, z]} castShadow>
             <boxGeometry args={[width, 0.22, 0.22]} />
-            <meshStandardMaterial color={MATERIAL.frame} roughness={0.5} metalness={0.5} />
+            <meshStandardMaterial color={c.frame} roughness={0.5} metalness={0.5} />
           </mesh>
           {/* Truss webbing */}
           <mesh position={[cx, height - 0.95, z]}>
             <boxGeometry args={[width, 0.08, 0.08]} />
-            <meshStandardMaterial color={MATERIAL.frame} roughness={0.6} metalness={0.4} />
+            <meshStandardMaterial color={c.frame} roughness={0.6} metalness={0.4} />
           </mesh>
         </group>
       ))}
@@ -74,7 +76,7 @@ export function WarehouseBuilding() {
       {[zMin, zMax].map((z) => (
         <mesh key={`eave-${z}`} position={[cx, height, z]}>
           <boxGeometry args={[width, 0.35, 0.35]} />
-          <meshStandardMaterial color={MATERIAL.frame} roughness={0.45} metalness={0.55} />
+          <meshStandardMaterial color={c.frame} roughness={0.45} metalness={0.55} />
         </mesh>
       ))}
     </group>

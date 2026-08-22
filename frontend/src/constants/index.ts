@@ -61,16 +61,74 @@ export const COLORS = {
   slate: '#6b7490',
 } as const;
 
-/** Structural material colours, kept separate from status colours. */
-export const MATERIAL = {
-  floor: '#3c414f',
-  apron: '#33384a',
-  yard: '#343945',
-  road: '#2b303c',
-  wall: '#575f75',
-  frame: '#7d88a3',
-  rackUpright: '#6b7490',
-} as const;
+/** Structural material colours, per theme. Status colours stay constant so
+ *  a CRITICAL bay reads the same in either mode. */
+export interface SceneTheme {
+  background: string;
+  fog: string;
+  floor: string;
+  apron: string;
+  yard: string;
+  road: string;
+  wall: string;
+  frame: string;
+  rackUpright: string;
+  grid: string;
+  gridSection: string;
+  label: string;
+  lane: string;
+  trailer: string;
+  ambient: number;
+  hemi: number;
+  sun: number;
+  fill: number;
+  emissive: number;
+}
+
+export const SCENE: Record<'light' | 'dark', SceneTheme> = {
+  light: {
+    background: '#dfe4ec',
+    fog: '#dfe4ec',
+    floor: '#d5dae4',
+    apron: '#c3cad6',
+    yard: '#cbd1dc',
+    road: '#aeb6c4',
+    wall: '#eef1f6',
+    frame: '#98a2b6',
+    rackUpright: '#8a94aa',
+    grid: '#b9c1d0',
+    gridSection: '#94a0b6',
+    label: '#3b4358',
+    lane: '#c8cedb',
+    trailer: '#aeb7c8',
+    ambient: 1.0,
+    hemi: 0.75,
+    sun: 1.5,
+    fill: 0.25,
+    emissive: 0.18,
+  },
+  dark: {
+    background: '#161a24',
+    fog: '#161a24',
+    floor: '#3c414f',
+    apron: '#33384a',
+    yard: '#343945',
+    road: '#2b303c',
+    wall: '#575f75',
+    frame: '#7d88a3',
+    rackUpright: '#6b7490',
+    grid: '#454c5e',
+    gridSection: '#5b6a8a',
+    label: '#c3ccdf',
+    lane: '#4a5163',
+    trailer: '#7c869e',
+    ambient: 0.75,
+    hemi: 0.85,
+    sun: 1.5,
+    fill: 0.9,
+    emissive: 0.4,
+  },
+};
 
 export type BadgeTone = 'green' | 'cyan' | 'amber' | 'red' | 'lime';
 

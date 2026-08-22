@@ -4,6 +4,21 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ChainPilot — Agentic AI Supply Chain Control Tower</title>
+    <script>
+      // Apply the saved theme before first paint so there is no flash of the
+      // wrong palette. Light is the default; dark is opt-in.
+      (function () {
+        try {
+          var t = localStorage.getItem('chainpilot:theme');
+          document.documentElement.setAttribute(
+            'data-theme',
+            t === 'dark' ? 'dark' : 'light'
+          );
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'light');
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -5,8 +5,60 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── CSS Custom Properties ── */
+/* ── CSS Custom Properties ──
+   Light is the default. Dark is opt-in via data-theme="dark" on <html>.
+   Only the tokens that differ are redefined in the dark block, so a colour
+   never has its single definition inside a theme override. */
 :root {
+  /* Neutral warm-grey surfaces — easier on the eye than pure white */
+  --cp-bg-primary: #eef0f4;
+  --cp-bg-secondary: #ffffff;
+  --cp-bg-tertiary: #f4f6f9;
+  --cp-bg-elevated: #ffffff;
+  --cp-bg-glass: rgba(255, 255, 255, 0.88);
+  --cp-bg-glass-hover: rgba(255, 255, 255, 0.96);
+
+  --cp-border: rgba(15, 27, 60, 0.1);
+  --cp-border-hover: rgba(15, 27, 60, 0.2);
+  --cp-border-active: rgba(0, 122, 168, 0.45);
+
+  --cp-text-primary: #161c2b;
+  --cp-text-secondary: #59617a;
+  --cp-text-muted: #878fa5;
+  --cp-text-accent: #0176a3;
+
+  /* Accents: darkened for contrast on light surfaces */
+  --cp-cyan: #0176a3;
+  --cp-cyan-dim: rgba(1, 118, 163, 0.12);
+  --cp-cyan-glow: rgba(1, 118, 163, 0.2);
+  --cp-blue: #2563eb;
+  --cp-lime: #4d7c0f;
+  --cp-lime-dim: rgba(77, 124, 15, 0.12);
+  --cp-green: #15803d;
+  --cp-green-dim: rgba(21, 128, 61, 0.12);
+  --cp-amber: #b45309;
+  --cp-amber-dim: rgba(180, 83, 9, 0.12);
+  --cp-red: #cf2b2b;
+  --cp-red-dim: rgba(207, 43, 43, 0.12);
+  --cp-purple: #7c3aed;
+
+  /* Contrasting foreground for filled accent buttons */
+  --cp-on-accent: #ffffff;
+
+  --cp-font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --cp-font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  --cp-radius-sm: 6px;
+  --cp-radius-md: 10px;
+  --cp-radius-lg: 14px;
+
+  --cp-shadow-sm: 0 1px 2px rgba(15, 27, 60, 0.08);
+  --cp-shadow-md: 0 4px 12px rgba(15, 27, 60, 0.1);
+  --cp-shadow-lg: 0 8px 28px rgba(15, 27, 60, 0.14);
+  --cp-shadow-glow: 0 0 0 3px rgba(1, 118, 163, 0.12);
+}
+
+:root[data-theme='dark'] {
   --cp-bg-primary: #0a0a0f;
   --cp-bg-secondary: #12121a;
   --cp-bg-tertiary: #1a1a28;
@@ -14,13 +66,13 @@
   --cp-bg-glass: rgba(18, 18, 26, 0.85);
   --cp-bg-glass-hover: rgba(26, 26, 40, 0.9);
 
-  --cp-border: rgba(255, 255, 255, 0.06);
-  --cp-border-hover: rgba(255, 255, 255, 0.12);
-  --cp-border-active: rgba(0, 210, 255, 0.3);
+  --cp-border: rgba(255, 255, 255, 0.08);
+  --cp-border-hover: rgba(255, 255, 255, 0.16);
+  --cp-border-active: rgba(0, 210, 255, 0.35);
 
   --cp-text-primary: #e8e8f0;
-  --cp-text-secondary: #8888a0;
-  --cp-text-muted: #55556a;
+  --cp-text-secondary: #9a9ab4;
+  --cp-text-muted: #6c6c85;
   --cp-text-accent: #00d4ff;
 
   --cp-cyan: #00d4ff;
@@ -37,12 +89,7 @@
   --cp-red-dim: rgba(239, 68, 68, 0.15);
   --cp-purple: #a855f7;
 
-  --cp-font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --cp-font-mono: 'JetBrains Mono', 'Fira Code', monospace;
-
-  --cp-radius-sm: 6px;
-  --cp-radius-md: 10px;
-  --cp-radius-lg: 14px;
+  --cp-on-accent: #0a0a0f;
 
   --cp-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
   --cp-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
@@ -280,7 +327,7 @@ html, body, #root {
   justify-content: space-between;
   align-items: baseline;
   padding: 6px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid var(--cp-border);
 }
 
 .detail-row:last-child { border-bottom: none; }
@@ -332,7 +379,7 @@ html, body, #root {
   justify-content: space-between;
   align-items: center;
   padding: 7px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid var(--cp-border);
 }
 
 .ct-metric:last-child { border-bottom: none; }
@@ -392,7 +439,7 @@ html, body, #root {
   display: flex;
   gap: 8px;
   padding: 6px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid var(--cp-border);
   font-size: 11px;
   align-items: flex-start;
 }
@@ -507,7 +554,7 @@ html, body, #root {
 .object-tooltip {
   pointer-events: none;
   padding: 6px 10px;
-  background: rgba(10, 10, 15, 0.92);
+  background: var(--cp-bg-glass);
   backdrop-filter: blur(8px);
   border: 1px solid var(--cp-border);
   border-radius: var(--cp-radius-sm);
@@ -658,7 +705,7 @@ html, body, #root {
   display: flex;
   gap: 9px;
   padding: 8px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid var(--cp-border);
 }
 
 .finding:last-child { border-bottom: none; }
@@ -761,11 +808,11 @@ html, body, #root {
 .btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
 .btn-approve {
-  color: #0a0a0f;
+  color: var(--cp-on-accent);
   background: var(--cp-green);
   border-color: var(--cp-green);
 }
-.btn-approve:hover:not(:disabled) { filter: brightness(1.12); color: #0a0a0f; }
+.btn-approve:hover:not(:disabled) { filter: brightness(1.08); }
 
 .btn-reject:hover:not(:disabled) { color: var(--cp-red); border-color: var(--cp-red); }
 
@@ -841,6 +888,17 @@ html, body, #root {
     top: auto;
     bottom: 8px;
     max-height: 52%;
+    /* Sheets are height-capped, so their contents must scroll or the last
+       rows are silently clipped. */
+    display: flex;
+    flex-direction: column;
+  }
+
+  .control-tower > .glass-panel-body,
+  .detail-panel-overlay > .glass-panel-body,
+  .agent-console > .agent-console-scroll {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   /* Only one sheet visible at a time; the app decides which */
@@ -955,7 +1013,7 @@ html, body, #root {
   letter-spacing: 0.4px;
   text-transform: uppercase;
   font-family: var(--cp-font-mono);
-  color: #0a0a0f;
+  color: var(--cp-on-accent);
   background: var(--cp-cyan);
   border: none;
   border-radius: var(--cp-radius-sm);
@@ -975,4 +1033,156 @@ html, body, #root {
   background: var(--cp-red-dim);
   border: 1px solid rgba(239, 68, 68, 0.3);
   border-radius: var(--cp-radius-sm);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   HUD pills — collapsed overlays that read like quiet notifications
+   ═══════════════════════════════════════════════════════════════════ */
+
+.hud-pill {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 30;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 300px;
+  padding: 8px 12px;
+  text-align: left;
+
+  background: var(--cp-bg-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--cp-border);
+  border-left: 3px solid var(--pill-accent, var(--cp-cyan));
+  border-radius: var(--cp-radius-md);
+  box-shadow: var(--cp-shadow-md);
+  cursor: pointer;
+  transition: box-shadow 0.18s, border-color 0.18s, transform 0.18s;
+  animation: slide-in 0.22s ease-out;
+}
+
+.hud-pill:hover {
+  box-shadow: var(--cp-shadow-lg);
+  border-color: var(--cp-border-hover);
+  border-left-color: var(--pill-accent, var(--cp-cyan));
+  transform: translateY(-1px);
+}
+
+.hud-pill--events {
+  top: auto;
+  right: auto;
+  bottom: 12px;
+  left: 12px;
+  max-width: 330px;
+}
+
+.hud-pill-score {
+  font-family: var(--cp-font-mono);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.hud-pill-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.hud-pill-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--cp-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hud-pill-sub {
+  font-size: 10.5px;
+  color: var(--cp-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hud-pill-chevron {
+  font-size: 10px;
+  color: var(--cp-text-muted);
+  flex-shrink: 0;
+}
+
+.hud-pill-count {
+  flex-shrink: 0;
+  padding: 2px 7px;
+  font-family: var(--cp-font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--pill-accent, var(--cp-cyan));
+  background: var(--cp-bg-tertiary);
+  border-radius: 10px;
+}
+
+/* ── Theme toggle ── */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  margin-right: 12px;
+  font-size: 10px;
+  font-family: var(--cp-font-mono);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--cp-text-secondary);
+  background: var(--cp-bg-tertiary);
+  border: 1px solid var(--cp-border);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+
+.theme-toggle:hover {
+  color: var(--cp-text-primary);
+  border-color: var(--cp-border-hover);
+}
+
+/* The 3D canvas paints its own background, so give panels real contrast */
+.object-tooltip {
+  color: var(--cp-text-primary);
+  box-shadow: var(--cp-shadow-md);
+}
+
+@media (max-width: 900px) {
+  .hud-pill {
+    top: auto;
+    bottom: 12px;
+    left: 8px;
+    right: 8px;
+    max-width: none;
+  }
+  /* Two pills would collide at the bottom — stack the events one above */
+  .hud-pill--events { bottom: 68px; left: 8px; right: 8px; }
+}
+
+@media (max-width: 640px) {
+  .hud-pill { bottom: 8px; }
+  .hud-pill--events { bottom: 62px; }
+  .theme-toggle { margin-right: 8px; padding: 3px 8px; }
+}
+
+/* On narrow viewports expanded panels become full-width bottom sheets, so a
+   collapsed pill would sit on top of them. Expanding one hides the pills;
+   minimising brings them back. */
+@media (max-width: 900px) {
+  .app-main:has(> .control-tower) .hud-pill,
+  .app-main:has(> .event-timeline) .hud-pill,
+  .app-main:has(> .agent-console.panel-active) .hud-pill {
+    display: none;
+  }
 }

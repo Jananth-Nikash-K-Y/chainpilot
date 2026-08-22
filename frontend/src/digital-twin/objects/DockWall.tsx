@@ -2,12 +2,14 @@
 import { Text } from '@react-three/drei';
 import { useDataStore } from '@/stores/dataStore';
 import { useUIStore } from '@/stores/uiStore';
-import { COLORS, MATERIAL, SITE, colorFor, dockZ } from '@/constants';
+import { COLORS, SITE, colorFor, dockZ } from '@/constants';
+import { useSceneColors } from '@/hooks';
 
 const DOOR_W = 3.4;
 const DOOR_H = 4.6;
 
 export function DockWall() {
+  const c = useSceneColors();
   const docks = useDataStore((s) => s.docks);
   const setSelected = useUIStore((s) => s.setSelected);
   const setHovered = useUIStore((s) => s.setHovered);
@@ -22,13 +24,13 @@ export function DockWall() {
       {/* Wall face */}
       <mesh position={[x, height / 2, cz]} castShadow receiveShadow>
         <boxGeometry args={[0.7, height, length]} />
-        <meshStandardMaterial color={MATERIAL.wall} roughness={0.8} metalness={0.15} />
+        <meshStandardMaterial color={c.wall} roughness={0.8} metalness={0.15} />
       </mesh>
 
       {/* Concrete apron the trucks reverse onto */}
       <mesh position={[x - 7, 0.02, cz]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[length, 14]} />
-        <meshStandardMaterial color={MATERIAL.apron} roughness={0.93} />
+        <meshStandardMaterial color={c.apron} roughness={0.93} />
       </mesh>
 
       {docks.map((d) => {
@@ -42,7 +44,7 @@ export function DockWall() {
             {/* Door recess */}
             <mesh position={[0, DOOR_H / 2, 0]}>
               <boxGeometry args={[0.12, DOOR_H + 0.4, DOOR_W + 0.4]} />
-              <meshStandardMaterial color="#2b3040" roughness={0.9} />
+              <meshStandardMaterial color={c.lane} roughness={0.9} />
             </mesh>
 
             {/* Roller shutter, tinted by dock status */}
@@ -88,7 +90,7 @@ export function DockWall() {
               position={[-0.32, DOOR_H + 1.6, 0]}
               rotation={[0, -Math.PI / 2, 0]}
               fontSize={0.78}
-              color={isSelected ? COLORS.cyan : '#c3ccdf'}
+              color={isSelected ? COLORS.cyan : c.label}
               anchorX="center"
               anchorY="middle"
             >

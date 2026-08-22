@@ -1,13 +1,16 @@
 /* ── Ground — site slab with a subtle grid overlay ── */
 import { Grid } from '@react-three/drei';
-import { MATERIAL, SITE } from '@/constants';
+import { SITE } from '@/constants';
+import { useSceneColors } from '@/hooks';
 
 export function Ground() {
+  const c = useSceneColors();
+
   return (
     <group>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.03, 0]} receiveShadow>
         <planeGeometry args={[SITE.ground.size, SITE.ground.size]} />
-        <meshStandardMaterial color={MATERIAL.yard} roughness={0.95} metalness={0.03} />
+        <meshStandardMaterial color={c.yard} roughness={0.95} metalness={0.03} />
       </mesh>
 
       <Grid
@@ -15,10 +18,10 @@ export function Ground() {
         args={[SITE.ground.size, SITE.ground.size]}
         cellSize={4}
         cellThickness={0.5}
-        cellColor="#454c5e"
+        cellColor={c.grid}
         sectionSize={20}
         sectionThickness={1}
-        sectionColor="#5b6a8a"
+        sectionColor={c.gridSection}
         fadeDistance={165}
         fadeStrength={1.2}
         followCamera={false}

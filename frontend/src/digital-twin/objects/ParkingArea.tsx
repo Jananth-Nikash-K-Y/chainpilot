@@ -2,9 +2,11 @@
 import { Text } from '@react-three/drei';
 import { useDataStore } from '@/stores/dataStore';
 import { useUIStore } from '@/stores/uiStore';
-import { COLORS, MATERIAL, SITE, colorFor, parkingPosition } from '@/constants';
+import { SITE, colorFor, parkingPosition } from '@/constants';
+import { useSceneColors } from '@/hooks';
 
 export function ParkingArea() {
+  const c = useSceneColors();
   const slots = useDataStore((s) => s.parkingSlots);
   const setSelected = useUIStore((s) => s.setSelected);
   const setHovered = useUIStore((s) => s.setHovered);
@@ -23,7 +25,7 @@ export function ParkingArea() {
         receiveShadow
       >
         <planeGeometry args={[spanX + 4, spanZ + 4]} />
-        <meshStandardMaterial color={MATERIAL.apron} roughness={0.94} />
+        <meshStandardMaterial color={c.apron} roughness={0.94} />
       </mesh>
 
       {slots.map((s) => {
@@ -64,7 +66,7 @@ export function ParkingArea() {
             {[-padW / 2, padW / 2].map((dx) => (
               <mesh key={dx} position={[dx, 0.04, 0]} rotation={[-Math.PI / 2, 0, 0]}>
                 <planeGeometry args={[0.12, padD]} />
-                <meshBasicMaterial color="#c9d3e6" transparent opacity={0.45} />
+                <meshBasicMaterial color={c.label} transparent opacity={0.45} />
               </mesh>
             ))}
 
@@ -73,12 +75,12 @@ export function ParkingArea() {
               <group>
                 <mesh position={[0, 1.5, 0]} castShadow>
                   <boxGeometry args={[2.3, 2.8, 5.2]} />
-                  <meshStandardMaterial color="#7c869e" roughness={0.65} metalness={0.25} />
+                  <meshStandardMaterial color={c.trailer} roughness={0.65} metalness={0.25} />
                 </mesh>
                 {/* Landing gear */}
                 <mesh position={[0, 0.35, 2]}>
                   <boxGeometry args={[1.6, 0.7, 0.2]} />
-                  <meshStandardMaterial color="#4a5266" metalness={0.5} />
+                  <meshStandardMaterial color={c.frame} metalness={0.5} />
                 </mesh>
               </group>
             )}
@@ -87,7 +89,7 @@ export function ParkingArea() {
               position={[0, 0.05, padD / 2 - 0.6]}
               rotation={[-Math.PI / 2, 0, 0]}
               fontSize={0.62}
-              color={COLORS.slate}
+              color={c.label}
               anchorX="center"
               anchorY="middle"
             >

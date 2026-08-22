@@ -4,7 +4,8 @@ import { Html, Text } from '@react-three/drei';
 import type { Aisle, Bay } from '@/types/types';
 import { useDataStore } from '@/stores/dataStore';
 import { useUIStore } from '@/stores/uiStore';
-import { COLORS, MATERIAL, SITE, colorFor } from '@/constants';
+import { COLORS, SITE, colorFor } from '@/constants';
+import { useSceneColors } from '@/hooks';
 
 interface Props {
   aisle: Aisle;
@@ -80,6 +81,7 @@ function PalletLoad({
 }
 
 export function AisleObject({ aisle }: Props) {
+  const c = useSceneColors();
   const allBays = useDataStore((s) => s.bays);
   const setSelected = useUIStore((s) => s.setSelected);
   const setHovered = useUIStore((s) => s.setHovered);
@@ -123,7 +125,7 @@ export function AisleObject({ aisle }: Props) {
       >
         <planeGeometry args={[RACK_W * 2 + 2.6, runLength]} />
         <meshStandardMaterial
-          color={isSelected ? COLORS.cyan : '#4a5163'}
+          color={isSelected ? COLORS.cyan : c.lane}
           emissive={isSelected ? COLORS.cyan : '#000000'}
           emissiveIntensity={isSelected ? 0.35 : 0}
           roughness={0.9}
@@ -151,7 +153,7 @@ export function AisleObject({ aisle }: Props) {
             castShadow
           >
             <boxGeometry args={[RACK_W, rackH, UPRIGHT]} />
-            <meshStandardMaterial color={MATERIAL.rackUpright} roughness={0.55} metalness={0.55} />
+            <meshStandardMaterial color={c.rackUpright} roughness={0.55} metalness={0.55} />
           </mesh>
         )),
       )}
@@ -192,7 +194,7 @@ export function AisleObject({ aisle }: Props) {
         position={[0, 0.06, -SITE.aisle.bayDepth]}
         rotation={[-Math.PI / 2, 0, 0]}
         fontSize={1.5}
-        color={isSelected ? COLORS.cyan : '#9aa5bd'}
+        color={isSelected ? COLORS.cyan : c.label}
         anchorX="center"
         anchorY="middle"
       >
@@ -204,7 +206,7 @@ export function AisleObject({ aisle }: Props) {
         position={[0, rackH + 1.4, runLength / 2 - SITE.aisle.bayDepth / 2]}
         rotation={[0, Math.PI / 2, 0]}
         fontSize={1.1}
-        color="#7f8ba6"
+        color={c.label}
         anchorX="center"
         anchorY="middle"
       >

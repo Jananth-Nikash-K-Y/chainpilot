@@ -5,8 +5,39 @@ import { api } from '@/services/api';
 import { useDataStore } from '@/stores/dataStore';
 
 type Panel = 'agent' | 'tower' | 'detail';
+export type Theme = 'light' | 'dark';
+
+const THEME_KEY = 'chainpilot:theme';
+
+function initialTheme(): Theme {
+  if (typeof window === 'undefined') return 'light';
+  const saved = window.localStorage.getItem(THEME_KEY);
+  return saved === 'dark' || saved === 'light' ? saved : 'light';
+}
+
+/** Reflect the theme on <html> so CSS custom properties switch. */
+function applyTheme(theme: Theme) {
+  if (typeof document === 'undefined') return;
+  document.documentElement.setAttribute('data-theme', theme);
+  try {
+    window.localStorage.setItem(THEME_KEY, theme);
+  } catch {
+    // Private browsing — the theme just will not persist.
+  }
+}
 
 interface UIState {
+  // Theme
+  theme: Theme;
+  setTheme: (t: Theme) => void;
+  toggleTheme: () => void;
+
+  // Collapsible overlays — minimised by default so the twin stays visible
+  towerExpanded: boolean;
+  timelineExpanded: boolean;
+  toggleTower: () => void;
+  toggleTimeline: () => void;
+
   // Selection
   selectedObject: SelectedObject | null;
   hoveredObject: SelectedObject | null;
@@ -43,6 +74,22 @@ interface UIState {
 }
 
 export const useUIStore = create<UIState>((set, get) => ({
+  theme: initialTheme(),
+  setTheme: (t) => {
+    applyTheme(t);
+    set({ theme: t });
+  },
+  toggleTheme: () => {
+    const next: Theme = get().theme === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    set({ theme: next });
+  },
+
+  towerExpanded: false,
+  timelineExpanded: false,
+  toggleTower: () => set((s) => ({ towerExpanded: !s.towerExpanded })),
+  toggleTimeline: () => set((s) => ({ timelineExpanded: !s.timelineExpanded })),
+
   selectedObject: null,
   hoveredObject: null,
   setSelected: (obj) =>
