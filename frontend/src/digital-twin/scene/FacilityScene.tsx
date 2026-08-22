@@ -37,6 +37,7 @@ export function FacilityScene() {
   const forklifts = useDataStore((s) => s.forklifts);
   const cameraView = useUIStore((s) => s.cameraView);
   const cameraTarget = useUIStore((s) => s.cameraTarget);
+  const cameraDistance = useUIStore((s) => s.cameraDistance);
   const setSelected = useUIStore((s) => s.setSelected);
   const colors = useSceneColors();
 
@@ -50,27 +51,38 @@ export function FacilityScene() {
   const flying = useRef(true);
 
   useEffect(() => {
-    // A new preset (or a newly selected object) restarts the fly-to.
+    // A new preset (or a newly focused object) restarts the fly-to.
     flying.current = true;
-  }, [cameraView, cameraTarget]);
+  }, [cameraView, cameraTarget, cameraDistance]);
 
   useFrame(() => {
     if (!flying.current) return;
 
     const preset = VIEWS[cameraView] ?? VIEWS.overview;
+    // Standoff scales with the focus distance, so focusing a bay puts the
+    // camera inside the aisle rather than hovering above the building.
+    const d = cameraDistance ?? 27;
     const destPos = cameraTarget
-      ? new THREE.Vector3(cameraTarget[0] - 16, cameraTarget[1] + 14, cameraTarget[2] + 18)
+      ? new THREE.Vector3(
+          cameraTarget[0] - d * 0.6,
+          cameraTarget[1] + d * 0.5,
+          cameraTarget[2] + d * 0.66,
+        )
       : new THREE.Vector3(...preset.pos);
     const destLook = cameraTarget
       ? new THREE.Vector3(...cameraTarget)
       : new THREE.Vector3(...preset.target);
 
-    camera.position.lerp(destPos, 0.07);
+    camera.position.lerp(destPos, 0.08);
     const controls = controlsRef.current;
     if (controls) {
-      controls.target.lerp(destLook, 0.07);
+      controls.target.lerp(destLook, 0.08);
       controls.update();
-      if (camera.position.distanceTo(destPos) < ARRIVED) flying.current = false;
+      // Scale the arrival threshold with the trip, so short hops into a bay
+      // settle as crisply as long ones across the site.
+      if (camera.position.distanceTo(destPos) < Math.max(ARRIVED, d * 0.05)) {
+        flying.current = false;
+      }
     }
   });
 
@@ -96,23 +108,30 @@ export function FacilityScene() {
       <pointLight position={[30, 9, 0]} intensity={colors.fill} distance={80} decay={1.6} />
       <pointLight position={[16, 8, -14]} intensity={colors.fill * 0.7} distance={55} decay={1.6} />
 
-      {/* ── Camera controls: full freedom to orbit, pan and zoom ── */}
+      {/* ── Camera controls: free enough to walk into a single bay ── */}
       <OrbitControls
         ref={controlsRef}
         makeDefault
         enableDamping
         dampingFactor={0.06}
         enablePan
+        // Pan across the ground plane rather than the screen plane, so
+        // dragging moves you through the site the way you expect.
         screenSpacePanning={false}
-        panSpeed={0.9}
-        rotateSpeed={0.85}
-        zoomSpeed={1.1}
-        minDistance={4}
-        maxDistance={320}
-        // Just shy of the horizon, so you can drop to near ground level
-        // without flipping under the floor.
-        maxPolarAngle={Math.PI * 0.495}
-        minPolarAngle={0.05}
+        panSpeed={1.1}
+        rotateSpeed={0.9}
+        zoomSpeed={1.2}
+        // 1.2 lets the camera sit between two racking faces; 400 pulls back
+        // far enough to see the whole site plus inbound routes.
+        minDistance={1.2}
+        maxDistance={400}
+        // Zoom toward the cursor — the difference between orbiting around a
+        // fixed point and actually navigating into an aisle.
+        zoomToCursor
+        // Just shy of the horizon, so you can drop to eye level inside the
+        // building without flipping under the floor.
+        maxPolarAngle={Math.PI * 0.499}
+        minPolarAngle={0.02}
         // Any user input cancels the automatic fly-to immediately.
         onStart={() => {
           flying.current = false;

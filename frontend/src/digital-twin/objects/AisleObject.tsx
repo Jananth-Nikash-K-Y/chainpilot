@@ -21,6 +21,7 @@ function PalletLoad({
   bay,
   side,
   onSelect,
+  onFocus,
   onHover,
   onOut,
   selected,
@@ -28,6 +29,7 @@ function PalletLoad({
   bay: Bay;
   side: -1 | 1;
   onSelect: () => void;
+  onFocus: () => void;
   onHover: () => void;
   onOut: () => void;
   selected: boolean;
@@ -54,6 +56,11 @@ function PalletLoad({
         onClick={(e) => {
           e.stopPropagation();
           onSelect();
+        }}
+        // Double-click flies the camera right up to this bay.
+        onDoubleClick={(e) => {
+          e.stopPropagation();
+          onFocus();
         }}
         onPointerOver={(e) => {
           e.stopPropagation();
@@ -87,6 +94,7 @@ export function AisleObject({ aisle }: Props) {
   const setHovered = useUIStore((s) => s.setHovered);
   const hovered = useUIStore((s) => s.hoveredObject);
   const selected = useUIStore((s) => s.selectedObject);
+  const focusOn = useUIStore((s) => s.focusOn);
 
   const bays = useMemo(
     () => allBays.filter((b) => b.aisle_id === aisle.id),
@@ -116,6 +124,14 @@ export function AisleObject({ aisle }: Props) {
         onClick={(e) => {
           e.stopPropagation();
           setSelected(identity);
+        }}
+        // Double-click drops the camera into the aisle at working height.
+        onDoubleClick={(e) => {
+          e.stopPropagation();
+          focusOn(
+            [aisle.position_x, 3, aisle.position_z + runLength / 2],
+            16,
+          );
         }}
         onPointerOver={(e) => {
           e.stopPropagation();
@@ -183,6 +199,16 @@ export function AisleObject({ aisle }: Props) {
             side={i % 2 === 0 ? -1 : 1}
             selected={selected?.type === 'bay' && selected.id === bay.id}
             onSelect={() => setSelected({ type: 'bay', id: bay.id, code: bay.code })}
+            onFocus={() =>
+              focusOn(
+                [
+                  aisle.position_x,
+                  2.5,
+                  aisle.position_z + bay.position_index * SITE.aisle.bayDepth,
+                ],
+                7,
+              )
+            }
             onHover={() => setHovered({ type: 'bay', id: bay.id, code: bay.code })}
             onOut={() => setHovered(null)}
           />

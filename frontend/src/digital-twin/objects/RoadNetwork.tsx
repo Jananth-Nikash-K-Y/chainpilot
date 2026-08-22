@@ -1,6 +1,6 @@
-/* ── RoadNetwork — access road from the gate to the dock apron ── */
+/* ── RoadNetwork — access road, holding lane and dock apron feeder ── */
 import { useMemo } from 'react';
-import { SITE } from '@/constants';
+import { COLORS, SITE } from '@/constants';
 import { useSceneColors } from '@/hooks';
 
 function Road({
@@ -22,27 +22,44 @@ function Road({
 
 export function RoadNetwork() {
   const c = useSceneColors();
-  const roadLength = SITE.apron.x - SITE.gate.x + 8;
-  const roadCx = (SITE.gate.x + SITE.apron.x) / 2;
 
+  const { xStart, xEnd, z, width } = SITE.road;
+  const roadLength = xEnd - xStart;
+  const roadCx = (xStart + xEnd) / 2;
+
+  // Centre line separating inbound (north) from outbound (south).
   const dashes = useMemo(
-    () => Array.from({ length: 14 }, (_, i) => SITE.gate.x + 5 + i * 3.2),
-    [],
+    () => Array.from({ length: Math.floor(roadLength / 4) }, (_, i) => xStart + 3 + i * 4),
+    [xStart, roadLength],
   );
 
   return (
     <group>
-      {/* Main approach: gate → apron */}
-      <Road position={[roadCx, 0.012, 0]} size={[roadLength, 9]} color={c.road} />
+      {/* Main two-way approach: gate → apron */}
+      <Road position={[roadCx, 0.012, z]} size={[roadLength, width]} color={c.road} />
 
-      {/* Apron feeder running north–south in front of the docks */}
-      <Road position={[SITE.apron.x - 3, 0.012, 0]} size={[12, 50]} color={c.road} />
+      {/* Holding lane, parallel and clear of the running lanes */}
+      <Road position={[roadCx, 0.012, -14]} size={[roadLength, 7]} color={c.road} />
 
-      {/* Centre line dashes */}
+      {/* Shoulder for held vehicles */}
+      <Road position={[roadCx, 0.012, -22]} size={[roadLength, 7]} color={c.road} />
+
+      {/* Apron feeder in front of the docks, joining the road */}
+      <Road position={[SITE.apron.x - 4, 0.012, 0]} size={[14, 52]} color={c.apron} />
+
+      {/* Centre line */}
       {dashes.map((x) => (
-        <mesh key={x} position={[x, 0.03, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <planeGeometry args={[1.7, 0.2]} />
-          <meshBasicMaterial color={c.label} transparent opacity={0.5} />
+        <mesh key={x} position={[x, 0.03, z]} rotation={[-Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[2, 0.22]} />
+          <meshBasicMaterial color={COLORS.amber} transparent opacity={0.55} />
+        </mesh>
+      ))}
+
+      {/* Lane edge lines */}
+      {[z - width / 2 + 0.4, z + width / 2 - 0.4].map((lz) => (
+        <mesh key={lz} position={[roadCx, 0.03, lz]} rotation={[-Math.PI / 2, 0, 0]}>
+          <planeGeometry args={[roadLength, 0.16]} />
+          <meshBasicMaterial color={c.label} transparent opacity={0.4} />
         </mesh>
       ))}
     </group>

@@ -121,7 +121,17 @@ BAY_DEPTH = 4           # spacing between bays along an aisle
 # each other.
 FACING_DOCK = 0.0       # nose east, toward the dock wall
 HEADING_WEST = 3.1416   # nose west, for departing traffic
-TRUCK_LEN = 12.0        # length plus clearance, for queue spacing
+
+# The model is ~10.1 long; 15 leaves a clear gap between vehicles in a queue.
+TRUCK_LEN = 15.0
+
+# Traffic lanes, as z bands. Nothing stands inside the road corridor
+# (z -6..6) except vehicles actually moving through it, and the parking yard
+# starts well south of it.
+LANE_INBOUND_Z = -3.0     # north half of the road, heading east
+LANE_OUTBOUND_Z = 3.0     # south half of the road, heading west
+LANE_HOLDING_Z = -14.0    # queued, waiting for a berth
+LANE_SHOULDER_Z = -22.0   # held / delayed, off the running lanes
 
 
 def _seed() -> None:
@@ -350,23 +360,27 @@ def _seed() -> None:
                 px, py, pz = APRON_X, 0, APRON_Z_START + dock_slot * APRON_SLOT_DEPTH
                 ry = FACING_DOCK
             elif status == TruckStatus.ARRIVING:
-                # Nose-to-tail on the approach road (z = 0 lane).
-                px, py, pz = GATE_X + 6 + lane_counts["arriving"] * TRUCK_LEN, 0, 0
+                # Inbound half of the road, nose-to-tail toward the apron.
+                px = GATE_X + 8 + lane_counts["arriving"] * TRUCK_LEN
+                py, pz = 0, LANE_INBOUND_Z
                 ry = FACING_DOCK
                 lane_counts["arriving"] += 1
             elif status == TruckStatus.WAITING:
-                # Holding lane south of the road, clear of the apron.
-                px, py, pz = -34 + lane_counts["waiting"] * TRUCK_LEN, 0, 22
+                # Holding lane, parallel to the road and clear of it.
+                px = GATE_X + 8 + lane_counts["waiting"] * TRUCK_LEN
+                py, pz = 0, LANE_HOLDING_Z
                 ry = FACING_DOCK
                 lane_counts["waiting"] += 1
             elif status == TruckStatus.DELAYED:
-                # Held on the shoulder north of the road.
-                px, py, pz = -34 + lane_counts["delayed"] * TRUCK_LEN, 0, -22
+                # Pulled onto the shoulder, off the running lanes.
+                px = GATE_X + 8 + lane_counts["delayed"] * TRUCK_LEN
+                py, pz = 0, LANE_SHOULDER_Z
                 ry = FACING_DOCK
                 lane_counts["delayed"] += 1
             else:
-                # Departing: staged on the exit lane, already turned around.
-                px, py, pz = -6 - lane_counts["departing"] * TRUCK_LEN, 0, 10
+                # Departing: outbound half of the road, already turned around.
+                px = -12 - lane_counts["departing"] * TRUCK_LEN
+                py, pz = 0, LANE_OUTBOUND_Z
                 ry = HEADING_WEST
                 lane_counts["departing"] += 1
 

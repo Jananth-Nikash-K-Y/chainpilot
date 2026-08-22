@@ -1,22 +1,31 @@
 /* ── Shared constants: site layout + status→colour mapping ──
  *
- * SITE PLAN (top-down; +x = east, +z = south).
+ * SITE PLAN (top-down; +x = east, +z = south). Zones are laid out in bands
+ * along z so traffic lanes and standing areas never overlap:
  *
- *   x:  -40      -34 … -16      2       8 ──────────────── 52
- *       GATE      PARKING     APRON  DOCK WALL         WAREHOUSE
+ *   z = -22  delayed shoulder
+ *   z = -14  holding lane (waiting for a berth)
+ *   z =  -6 … +6   MAIN ROAD  (gate → apron; inbound north half, outbound south)
+ *   z = +12 … +35  PARKING YARD
  *
- * Kept deliberately compact: the warehouse is the subject, the yard is
- * context. backend/app/seed.py mirrors these numbers — change both together.
+ *   x:  -40 ────────────────── -6      4       8 ─────────── 52
+ *       GATE     ROAD / YARD         APRON  DOCK WALL   WAREHOUSE
+ *
+ * backend/app/seed.py mirrors these numbers — change both together.
  */
 
 export const SITE = {
   gate: { x: -40, z: 0 },
 
+  /** Main road corridor. Nothing may be parked inside this band. */
+  road: { xStart: -40, xEnd: -6, z: 0, width: 12 },
+
+  /** Parking sits entirely south of the road corridor. */
   parking: {
-    xStart: -34,
-    zStart: -14,
-    cols: 4,
-    rows: 5,
+    xStart: -40,
+    zStart: 12,
+    cols: 5,
+    rows: 4,
     padW: 5,
     padD: 6,
     gapX: 1.5,

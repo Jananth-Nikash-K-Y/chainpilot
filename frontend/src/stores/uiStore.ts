@@ -47,7 +47,11 @@ interface UIState {
   // Camera
   cameraView: CameraView;
   cameraTarget: [number, number, number] | null;
+  /** How close the fly-to should settle. Smaller = further inside. */
+  cameraDistance: number | null;
   setCameraView: (view: CameraView, target?: [number, number, number]) => void;
+  /** Fly to a point in the scene at a given standoff distance. */
+  focusOn: (pos: [number, number, number], distance: number) => void;
 
   // Sidebar
   activePage: string;
@@ -98,7 +102,10 @@ export const useUIStore = create<UIState>((set, get) => ({
 
   cameraView: 'overview',
   cameraTarget: null,
-  setCameraView: (view, target) => set({ cameraView: view, cameraTarget: target ?? null }),
+  cameraDistance: null,
+  setCameraView: (view, target) =>
+    set({ cameraView: view, cameraTarget: target ?? null, cameraDistance: null }),
+  focusOn: (pos, distance) => set({ cameraTarget: pos, cameraDistance: distance }),
 
   activePage: 'digital-twin',
   setActivePage: (page) => set({ activePage: page }),
