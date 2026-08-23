@@ -245,6 +245,24 @@ tool layer and approval gate are unchanged either way.
 
 ---
 
+## Contributing
+
+**Open source, and contributions are genuinely welcome** — pull the repo, make
+changes, open a PR. Ideas count too: if you have domain knowledge about how
+supply chains actually break, or a view on how these agents *should* reason,
+open an issue or a
+[Discussion](https://github.com/Jananth-Nikash-K-Y/chainpilot/discussions).
+That's as useful as code here.
+
+Easy places to start: add a specialist agent, add a read-only tool, deepen the
+digital twin, or plug an LLM in behind the existing agent interface. See
+[CONTRIBUTING.md](CONTRIBUTING.md) for setup, the full list, and the two
+architectural rules to keep intact.
+
+```bash
+git clone https://github.com/Jananth-Nikash-K-Y/chainpilot.git
+```
+
 ## Status
 
 Working end to end: digital twin, operational API, agent orchestration, tool
