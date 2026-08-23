@@ -22,14 +22,22 @@ export function TruckObject({ truck }: Props) {
   const isSelected = selected?.type === 'truck' && selected.id === truck.id;
   const color = colorFor(truck.status);
 
-  // Trucks still on the approach road creep forward so the scene feels live.
-  const moving = truck.status === 'ARRIVING';
-  useFrame((_, delta) => {
-    if (!moving || !groupRef.current) return;
-    groupRef.current.position.x += delta * 1.2;
-    if (groupRef.current.position.x > 4) {
-      groupRef.current.position.x = truck.position_x;
-    }
+  // Arriving trucks idle rather than drive down the lane.
+  //
+  // The previous version advanced each truck independently and snapped it back
+  // to its own start on passing x=4. Because every truck reset at a different
+  // moment, the seeded 15-unit queue spacing collapsed — a follower ended up
+  // 6 units behind a truck 10.1 long, so trailers intersected. It also drove
+  // them through x=4, which is exactly where berthed trucks stand.
+  //
+  // Spacing can only be preserved by moving the whole convoy in lockstep, and
+  // a single truck cannot know how many others share its lane. So the motion
+  // here is a small in-place shudder that cannot close a gap.
+  const idling = truck.status === 'ARRIVING' || truck.status === 'WAITING';
+  useFrame((state) => {
+    if (!idling || !groupRef.current) return;
+    const t = state.clock.elapsedTime * 9 + truck.id;
+    groupRef.current.position.y = truck.position_y + Math.sin(t) * 0.02;
   });
 
   const identity = { type: 'truck' as const, id: truck.id, code: truck.code };
