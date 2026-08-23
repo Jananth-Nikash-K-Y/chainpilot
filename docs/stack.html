@@ -1,0 +1,626 @@
+<meta charset="utf-8">
+<title>ChainPilot Stack</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500;600&display=swap">
+
+<style>
+  /* ── Tokens: light is the base, dark redefines only what changes ── */
+  :root {
+    --ground: #eef0f4;
+    --surface: #ffffff;
+    --surface-2: #f5f7fa;
+    --edge: rgba(20, 30, 55, 0.10);
+    --edge-strong: rgba(20, 30, 55, 0.20);
+
+    --ink: #161c2b;
+    --ink-2: #4d566d;
+    --ink-3: #838ca3;
+
+    --signal: #0176a3;
+    --signal-soft: rgba(1, 118, 163, 0.18);
+    --freight: #b45309;
+    --freight-soft: rgba(180, 83, 9, 0.22);
+    --critical: #cf2b2b;
+    --go: #15803d;
+    --go-soft: rgba(21, 128, 61, 0.20);
+
+    --shadow: 0 1px 2px rgba(20, 30, 55, .06), 0 8px 24px rgba(20, 30, 55, .07);
+    --shadow-lift: 0 2px 6px rgba(20, 30, 55, .09), 0 18px 44px rgba(20, 30, 55, .13);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0f1319;
+      --surface: #171b24;
+      --surface-2: #1d222d;
+      --edge: rgba(255, 255, 255, 0.09);
+      --edge-strong: rgba(255, 255, 255, 0.18);
+
+      --ink: #e8ebf2;
+      --ink-2: #a4adc2;
+      --ink-3: #737d94;
+
+      --signal: #22d3ee;
+      --signal-soft: rgba(34, 211, 238, 0.22);
+      --freight: #f59e0b;
+      --freight-soft: rgba(245, 158, 11, 0.26);
+      --critical: #f25555;
+      --go: #34d17c;
+      --go-soft: rgba(52, 209, 124, 0.24);
+
+      --shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 8px 24px rgba(0, 0, 0, .45);
+      --shadow-lift: 0 2px 6px rgba(0, 0, 0, .55), 0 18px 44px rgba(0, 0, 0, .6);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground: #0f1319;
+    --surface: #171b24;
+    --surface-2: #1d222d;
+    --edge: rgba(255, 255, 255, 0.09);
+    --edge-strong: rgba(255, 255, 255, 0.18);
+
+    --ink: #e8ebf2;
+    --ink-2: #a4adc2;
+    --ink-3: #737d94;
+
+    --signal: #22d3ee;
+    --signal-soft: rgba(34, 211, 238, 0.22);
+    --freight: #f59e0b;
+    --freight-soft: rgba(245, 158, 11, 0.26);
+    --critical: #f25555;
+    --go: #34d17c;
+    --go-soft: rgba(52, 209, 124, 0.24);
+
+    --shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 8px 24px rgba(0, 0, 0, .45);
+    --shadow-lift: 0 2px 6px rgba(0, 0, 0, .55), 0 18px 44px rgba(0, 0, 0, .6);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: Inter, system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 40px 28px 52px;
+  }
+
+  /* ── Masthead ── */
+  header { margin-bottom: 30px; }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--signal);
+  }
+  .eyebrow::before {
+    content: "";
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--signal);
+    box-shadow: 0 0 0 4px var(--signal-soft);
+  }
+
+  h1 {
+    font-family: Archivo, system-ui, sans-serif;
+    font-weight: 700;
+    font-size: clamp(30px, 5vw, 46px);
+    letter-spacing: -.025em;
+    line-height: 1.02;
+    text-wrap: balance;
+    margin: 12px 0 10px;
+  }
+
+  .standfirst {
+    max-width: 62ch;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--ink-2);
+    margin: 0;
+  }
+  .standfirst b { color: var(--ink); font-weight: 500; }
+
+  /* ── Stack grid: spine + bands ── */
+  .stack {
+    display: grid;
+    grid-template-columns: 176px 1fr;
+    gap: 0 26px;
+    position: relative;
+  }
+
+  /* The spine is a real signal path, not an ornament */
+  .spine {
+    position: absolute;
+    left: 175px;
+    top: 26px;
+    bottom: 26px;
+    width: 3px;
+    background: var(--edge-strong);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .spine-pulse {
+    position: absolute;
+    left: -1px;
+    width: 4px;
+    height: 74px;
+    border-radius: 4px;
+    background: linear-gradient(180deg, transparent, var(--signal), transparent);
+    transform: translateY(-100px);
+    opacity: 0;
+  }
+
+  .layer {
+    display: contents;
+  }
+
+  .layer-label {
+    grid-column: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+    text-align: right;
+    /* Right padding keeps the label clear of the spine it sits beside */
+    padding: 12px 28px 12px 0;
+    position: relative;
+  }
+
+  .layer-name {
+    font-family: Archivo, system-ui, sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: -.01em;
+    line-height: 1.15;
+    color: var(--ink);
+  }
+  .layer-role {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 9.5px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-top: 5px;
+    white-space: nowrap;
+  }
+
+  /* Node on the spine, aligned to each band */
+  .node {
+    position: absolute;
+    right: -7px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 13px; height: 13px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 2px solid var(--edge-strong);
+    z-index: 2;
+    transition: border-color .25s, box-shadow .25s, background .25s;
+  }
+
+  .band {
+    grid-column: 2;
+    background: var(--surface);
+    border: 1px solid var(--edge);
+    border-radius: 14px;
+    padding: 13px 16px;
+    margin-bottom: 9px;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    align-items: center;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity .42s cubic-bezier(.2,.7,.3,1),
+                transform .42s cubic-bezier(.2,.7,.3,1),
+                box-shadow .25s, border-color .25s;
+  }
+  .layer.shown .band { opacity: 1; transform: none; }
+
+  .band:hover, .band:focus-visible {
+    box-shadow: var(--shadow-lift);
+    border-color: var(--edge-strong);
+    outline: none;
+  }
+  .band:focus-visible { border-color: var(--signal); }
+
+  /* Active layer during the traversal */
+  .layer.active .band { border-color: var(--signal); border-width: 2px; box-shadow: var(--shadow-lift); }
+  .layer.active .node { border-color: var(--signal); box-shadow: 0 0 0 5px var(--signal-soft); }
+
+  /* ── Chips ── */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    border-radius: 8px;
+    background: var(--surface-2);
+    border: 1px solid var(--edge);
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 11.5px;
+    font-weight: 500;
+    color: var(--ink-2);
+    white-space: nowrap;
+    transition: color .2s, border-color .2s, background .2s;
+  }
+  .band:hover .chip { color: var(--ink); border-color: var(--edge-strong); }
+
+  .dot {
+    width: 7px; height: 7px;
+    border-radius: 2px;
+    background: var(--ink-3);
+    flex: none;
+  }
+  .dot.signal { background: var(--signal); }
+  .dot.freight { background: var(--freight); }
+  .dot.go { background: var(--go); }
+  .dot.critical { background: var(--critical); }
+
+  /* ── The gate: the one band that is different ── */
+  .layer.gate .band {
+    background: var(--freight-soft);
+    border-width: 2px;
+    border-color: var(--freight);
+    border-style: dashed;
+    justify-content: space-between;
+  }
+  .layer.gate .node { border-color: var(--freight); background: var(--freight); }
+  .layer.gate .layer-name { color: var(--freight); }
+
+  .gate-flow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .gate-step {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 11.5px;
+    font-weight: 500;
+    color: var(--ink-2);
+  }
+  .gate-step.human {
+    font-weight: 600;
+    color: var(--freight);
+    padding: 4px 10px;
+    border-radius: 7px;
+    background: var(--surface);
+    border: 1px solid var(--freight);
+  }
+  .gate-arrow { color: var(--ink-3); font-size: 11px; }
+
+  .gate-note {
+    font-size: 11px;
+    color: var(--ink-2);
+    font-style: italic;
+  }
+
+  /* Approval moment */
+  .layer.gate.approved .band {
+    background: var(--go-soft);
+    border-color: var(--go);
+    border-style: solid;
+  }
+  .layer.gate.approved .gate-step.human {
+    color: var(--go);
+    border-color: var(--go);
+  }
+  .layer.gate.approved .node { background: var(--go); border-color: var(--go); }
+
+  /* Return path highlight */
+  .layer.returning .band { border-color: var(--go); border-width: 2px; }
+  .layer.returning .node { border-color: var(--go); box-shadow: 0 0 0 5px var(--go-soft); }
+
+  /* ── Caption strip ── */
+  .legend {
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid var(--edge);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 22px;
+    align-items: center;
+  }
+  .legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11.5px;
+    color: var(--ink-2);
+  }
+  .legend-swatch {
+    width: 11px; height: 11px; border-radius: 3px; flex: none;
+  }
+
+  .footer-note {
+    margin-top: 14px;
+    font-size: 12px;
+    color: var(--ink-3);
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+  }
+  .footer-note a { color: var(--signal); text-decoration: none; }
+  .footer-note a:hover { text-decoration: underline; }
+
+  /* ── Responsive: spine collapses, labels sit above ── */
+  @media (max-width: 720px) {
+    .wrap { padding: 28px 16px 36px; }
+    .stack { grid-template-columns: 1fr; gap: 0; }
+    .spine { display: none; }
+    .node { display: none; }
+    .layer-label {
+      grid-column: 1;
+      align-items: flex-start;
+      text-align: left;
+      padding: 14px 0 7px;
+      flex-direction: row;
+      gap: 10px;
+      align-items: baseline;
+    }
+    .layer-role { margin-top: 0; }
+    .band { grid-column: 1; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition-duration: .01ms !important; }
+    .layer .band { opacity: 1; transform: none; }
+  }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Architecture</span>
+    <h1>How ChainPilot answers a question</h1>
+    <p class="standfirst">
+      A question enters at the top and travels down. Agents reason only through
+      named tools, so every claim has evidence behind it. Nothing comes back up
+      as an executed change until <b>a human approves it</b> — the gate is
+      enforced in the API, not the interface.
+    </p>
+  </header>
+
+  <div class="stack" id="stack">
+    <div class="spine"><div class="spine-pulse" id="pulse"></div></div>
+
+    <div class="layer" data-layer="0">
+      <div class="layer-label">
+        <span class="layer-name">Interface</span>
+        <span class="layer-role">operator view</span>
+        <span class="node"></span>
+      </div>
+      <div class="band" tabindex="0">
+        <span class="chip"><i class="dot signal"></i>Digital Twin</span>
+        <span class="chip"><i class="dot"></i>Control Tower</span>
+        <span class="chip"><i class="dot"></i>Agent Console</span>
+        <span class="chip"><i class="dot"></i>Command Bar</span>
+        <span class="chip"><i class="dot"></i>Event Timeline</span>
+      </div>
+    </div>
+
+    <div class="layer" data-layer="1">
+      <div class="layer-label">
+        <span class="layer-name">Orchestrator</span>
+        <span class="layer-role">routes goals</span>
+        <span class="node"></span>
+      </div>
+      <div class="band" tabindex="0">
+        <span class="chip"><i class="dot signal"></i>score agents</span>
+        <span class="chip"><i class="dot"></i>select specialists</span>
+        <span class="chip"><i class="dot"></i>compose answer</span>
+        <span class="chip"><i class="dot"></i>rank findings</span>
+      </div>
+    </div>
+
+    <div class="layer" data-layer="2">
+      <div class="layer-label">
+        <span class="layer-name">Agents</span>
+        <span class="layer-role">one domain each</span>
+        <span class="node"></span>
+      </div>
+      <div class="band" tabindex="0">
+        <span class="chip"><i class="dot critical"></i>exception</span>
+        <span class="chip"><i class="dot"></i>logistics</span>
+        <span class="chip"><i class="dot"></i>inventory</span>
+        <span class="chip"><i class="dot"></i>supplier-risk</span>
+        <span class="chip"><i class="dot"></i>warehouse</span>
+        <span class="chip"><i class="dot"></i>demand</span>
+        <span class="chip"><i class="dot"></i>simulation</span>
+      </div>
+    </div>
+
+    <div class="layer" data-layer="3">
+      <div class="layer-label">
+        <span class="layer-name">Tools</span>
+        <span class="layer-role">only data access</span>
+        <span class="node"></span>
+      </div>
+      <div class="band" tabindex="0">
+        <span class="chip"><i class="dot signal"></i>get_delayed_shipments</span>
+        <span class="chip"><i class="dot signal"></i>get_inventory_at_risk</span>
+        <span class="chip"><i class="dot signal"></i>get_dock_utilization</span>
+        <span class="chip"><i class="dot signal"></i>get_supplier_risk</span>
+        <span class="chip"><i class="dot signal"></i>simulate_delay</span>
+        <span class="chip"><i class="dot signal"></i>calculate_recovery_options</span>
+      </div>
+    </div>
+
+    <div class="layer gate" data-layer="4" id="gate">
+      <div class="layer-label">
+        <span class="layer-name">Approval Gate</span>
+        <span class="layer-role">hard constraint</span>
+        <span class="node"></span>
+      </div>
+      <div class="band" tabindex="0">
+        <div class="gate-flow">
+          <span class="gate-step">propose_action</span>
+          <span class="gate-arrow">→</span>
+          <span class="gate-step">validate_action</span>
+          <span class="gate-arrow">→</span>
+          <span class="gate-step human" id="gateHuman">human approves</span>
+          <span class="gate-arrow">→</span>
+          <span class="gate-step">execute_action</span>
+        </div>
+        <span class="gate-note">separate tools, so a person fits between them</span>
+      </div>
+    </div>
+
+    <div class="layer" data-layer="5">
+      <div class="layer-label">
+        <span class="layer-name">API</span>
+        <span class="layer-role">no logic here</span>
+        <span class="node"></span>
+      </div>
+      <div class="band" tabindex="0">
+        <span class="chip"><i class="dot"></i>FastAPI routes</span>
+        <span class="chip"><i class="dot"></i>Pydantic schemas</span>
+        <span class="chip"><i class="dot"></i>/api/ai/query</span>
+        <span class="chip"><i class="dot"></i>/api/actions</span>
+      </div>
+    </div>
+
+    <div class="layer" data-layer="6">
+      <div class="layer-label">
+        <span class="layer-name">Domain</span>
+        <span class="layer-role">business rules</span>
+        <span class="node"></span>
+      </div>
+      <div class="band" tabindex="0">
+        <span class="chip"><i class="dot"></i>services</span>
+        <span class="chip"><i class="dot"></i>repositories</span>
+        <span class="chip"><i class="dot"></i>models</span>
+        <span class="chip"><i class="dot go"></i>OperationalEvent</span>
+      </div>
+    </div>
+
+    <div class="layer" data-layer="7">
+      <div class="layer-label">
+        <span class="layer-name">Data</span>
+        <span class="layer-role">source of truth</span>
+        <span class="node"></span>
+      </div>
+      <div class="band" tabindex="0">
+        <span class="chip"><i class="dot"></i>SQLAlchemy</span>
+        <span class="chip"><i class="dot"></i>SQLite</span>
+        <span class="chip"><i class="dot"></i>PostgreSQL</span>
+        <span class="chip"><i class="dot"></i>Alembic</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <span class="legend-item">
+      <i class="legend-swatch" style="background: var(--signal)"></i>
+      request descending
+    </span>
+    <span class="legend-item">
+      <i class="legend-swatch" style="background: var(--freight)"></i>
+      awaiting a human
+    </span>
+    <span class="legend-item">
+      <i class="legend-swatch" style="background: var(--go)"></i>
+      approved change returning
+    </span>
+    <span class="legend-item" style="margin-left:auto">
+      <span style="font-family:'JetBrains Mono',monospace; font-size:11px">
+        hover any layer
+      </span>
+    </span>
+  </div>
+
+  <p class="footer-note">
+    ChainPilot — agentic AI supply chain control tower ·
+    <a href="https://github.com/Jananth-Nikash-K-Y/chainpilot">github.com/Jananth-Nikash-K-Y/chainpilot</a>
+  </p>
+</div>
+
+<script>
+  const layers = [...document.querySelectorAll('.layer')];
+  const pulse = document.getElementById('pulse');
+  const gate = document.getElementById('gate');
+  const stack = document.getElementById('stack');
+
+  // Phase-addressable so the animation can be stepped frame by frame when
+  // rendering the GIF, and run on a timer in the browser.
+  const REVEAL_END = layers.length;          // 0..7  bands appearing
+  const DESCEND_END = REVEAL_END + 5;        // travelling down to the gate
+  const HOLD_END = DESCEND_END + 3;          // awaiting approval
+  const RETURN_END = HOLD_END + 5;           // approved change returning
+  const TOTAL = RETURN_END + 3;
+
+  function nodeCentre(i) {
+    const band = layers[i].querySelector('.band');
+    const r = band.getBoundingClientRect();
+    const s = stack.getBoundingClientRect();
+    return r.top - s.top + r.height / 2;
+  }
+
+  window.__setPhase = function (p) {
+    p = ((p % TOTAL) + TOTAL) % TOTAL;
+
+    layers.forEach((l, i) => {
+      l.classList.toggle('shown', p >= i);
+      l.classList.remove('active', 'returning');
+    });
+    gate.classList.remove('approved');
+    pulse.style.opacity = 0;
+
+    if (p < REVEAL_END) return;
+
+    if (p < DESCEND_END) {
+      const step = p - REVEAL_END;              // 0..4 → layers 0..4
+      layers[step].classList.add('active');
+      pulse.style.opacity = 1;
+      pulse.style.transform = `translateY(${nodeCentre(step) - 37}px)`;
+      return;
+    }
+
+    if (p < HOLD_END) {
+      layers[4].classList.add('active');
+      gate.classList.toggle('approved', p === HOLD_END - 1);
+      return;
+    }
+
+    if (p < RETURN_END) {
+      gate.classList.add('approved');
+      const step = p - HOLD_END;                // 0..4 → layers 4..0
+      const idx = 4 - step;
+      layers[idx].classList.add('returning');
+      pulse.style.opacity = 1;
+      pulse.style.transform = `translateY(${nodeCentre(idx) - 37}px)`;
+      return;
+    }
+
+    gate.classList.add('approved');
+    layers.forEach((l) => l.classList.add('shown'));
+  };
+
+  window.__TOTAL_PHASES = TOTAL;
+
+  // Live playback in the browser (skipped for reduced motion and for capture)
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const capture = new URLSearchParams(location.search).has('capture');
+
+  if (reduced || capture) {
+    layers.forEach((l) => l.classList.add('shown'));
+    if (capture) window.__setPhase(0);
+  } else {
+    let phase = 0;
+    window.__setPhase(0);
+    setInterval(() => window.__setPhase(++phase), 620);
+  }
+</script>

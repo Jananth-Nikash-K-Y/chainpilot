@@ -44,6 +44,13 @@ The approval gate is a hard architectural constraint, not a UI affordance:
 `validate_action` and `execute_action` are separate tools from
 `propose_action` precisely so a human can sit between them.
 
+![The eight ChainPilot layers, with a question descending to the approval gate and the approved change returning](docs/images/chainpilot-stack.gif)
+
+*The stack, end to end. A question enters at the interface and travels down;
+agents reach data only through named tools; the change stops at the gate until
+a person approves it, then flows back up. An interactive version lives at
+[docs/stack.html](docs/stack.html).*
+
 ### 1 — Ask, and watch the agents work
 
 ![Agent console showing three agents engaged and ten ranked findings](docs/images/agent-console.png)
